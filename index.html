@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>お買い物メモ</title>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#FAF8F5;--surface:#FFFFFF;--surface2:#F5F0EA;--border:#E2D9CE;
+  --text:#4A3F35;--text2:#8C7B6E;--text3:#C8BAB0;
+  --accent:#C97B5A;--accent-bg:#F7EDE5;--accent-text:#8B4A2A;
+  --green:#7A9E7E;--green-bg:#EAF2EA;
+  --urgent:#C0614A;--urgent-bg:#FAEAE6;
+  --radius:12px;--radius-sm:8px;--radius-pill:99px;
+}
+body{font-family:'Zen Maru Gothic',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+.app{max-width:480px;margin:0 auto;padding:20px 14px}
+.app-title{font-size:17px;font-weight:700;color:var(--text);letter-spacing:0.04em;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px}
+.tabs{display:flex;margin-bottom:16px;background:var(--surface2);border-radius:var(--radius);padding:3px;gap:3px}
+.tab{flex:1;padding:8px 0;font-size:12px;font-family:'Zen Maru Gothic',sans-serif;text-align:center;cursor:pointer;background:transparent;color:var(--text2);border:none;border-radius:10px;transition:all 0.18s;font-weight:500}
+.tab.active{background:var(--surface);color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,0.08)}
+.section{display:none}.section.active{display:block}
+.input-row{display:flex;gap:8px;margin-bottom:10px}
+.input-row input{flex:1;font-size:14px;font-family:'Zen Maru Gothic',sans-serif;padding:0 12px;height:42px;border-radius:var(--radius);border:1px solid var(--border);background:var(--surface);color:var(--text);outline:none;min-width:0}
+.input-row input::placeholder{color:var(--text3)}
+.input-row input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-bg)}
+.icon-btn{height:42px;width:42px;border-radius:var(--radius);border:none;background:var(--accent);color:#fff;font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;line-height:1}
+.icon-btn:active{opacity:0.85;transform:scale(0.97)}
+.hint{font-size:11px;color:var(--text3);margin-bottom:12px;display:flex;align-items:center;gap:5px}
+.item-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:11px 12px;margin-bottom:7px;display:flex;align-items:center;gap:10px}
+.item-card.urgent{border-color:var(--urgent);background:var(--urgent-bg)}
+.item-card.done{opacity:0.45}
+.item-card.done .item-name{text-decoration:line-through;color:var(--text3)}
+.check-box{width:22px;height:22px;border-radius:50%;border:2px solid var(--border);background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.15s;font-size:13px;color:transparent}
+.check-box.checked{background:var(--green);border-color:var(--green);color:#fff}
+.urgent-btn{background:none;border:none;cursor:pointer;font-size:16px;padding:2px;display:flex;align-items:center;color:var(--text3);flex-shrink:0;transition:color 0.15s;line-height:1}
+.urgent-btn.on{color:var(--urgent)}
+.item-name{flex:1;font-size:14px;color:var(--text)}
+.del-btn{background:none;border:none;cursor:pointer;color:var(--text3);font-size:15px;padding:2px;display:flex;align-items:center;line-height:1}
+.del-btn:hover{color:var(--urgent)}
+.sec-label{font-size:11px;font-weight:500;color:var(--text3);margin-bottom:6px;margin-top:12px;letter-spacing:0.06em;text-transform:uppercase}
+.empty{text-align:center;padding:32px 16px;color:var(--text3);font-size:13px}
+.empty-icon{font-size:32px;display:block;margin-bottom:10px}
+.footer-bar{display:flex;justify-content:space-between;align-items:center;padding-top:10px;border-top:1px solid var(--border);margin-top:8px}
+.footer-count{font-size:12px;color:var(--text2)}
+.clear-btn{font-size:12px;color:var(--accent);background:none;border:none;cursor:pointer;font-family:'Zen Maru Gothic',sans-serif}
+.price-form{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:14px}
+.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:10px}
+.field label{font-size:11px;color:var(--text2);display:block;margin-bottom:3px;font-weight:500;letter-spacing:0.03em}
+.field input{width:100%;font-size:13px;font-family:'Zen Maru Gothic',sans-serif;padding:0 8px;height:40px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface2);color:var(--text);outline:none;}
+.field select{width:100%;font-size:13px;font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Yu Gothic UI',sans-serif;padding:0 24px 0 8px;height:40px;border-radius:var(--radius-sm);border:1px solid var(--border);background-color:var(--surface2);color:var(--text);outline:none;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24'%3E%3Cpath fill='%238C7B6E' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 7px center;cursor:pointer;}
+.field input::placeholder{color:var(--text3);font-style:italic}
+.field input:not(:placeholder-shown){color:var(--text);font-style:normal;background:var(--surface);border-color:#C8B8A8}
+.field input:focus,.field select:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-bg);background:var(--surface)}
+.field.full{grid-column:1/-1}
+.cat-input-row{display:flex;gap:6px;margin-top:5px}
+.cat-input-row input{flex:1;font-size:12px;font-family:'Zen Maru Gothic',sans-serif;padding:0 8px;height:34px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface2);color:var(--text);outline:none}
+.cat-input-row input::placeholder{color:var(--text3);font-style:italic}
+.cat-input-row button{height:34px;padding:0 10px;font-size:11px;font-family:'Zen Maru Gothic',sans-serif;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface2);color:var(--text2);cursor:pointer;white-space:nowrap}
+.cat-input-row button:hover{background:var(--accent-bg);border-color:var(--accent);color:var(--accent-text)}
+.add-price-btn{width:100%;height:42px;border-radius:var(--radius);border:none;background:var(--accent);color:#fff;font-size:13px;font-family:'Zen Maru Gothic',sans-serif;font-weight:500;cursor:pointer;letter-spacing:0.04em}
+.add-price-btn:active{opacity:0.85;transform:scale(0.99)}
+.err{font-size:11px;color:var(--urgent);margin-top:6px;display:none}
+.sort-row{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.sort-row label{font-size:11px;color:var(--text2);white-space:nowrap;font-weight:500}
+.sort-row select{font-size:13px;font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Yu Gothic UI',sans-serif;padding:0 28px 0 10px;height:38px;border-radius:var(--radius-sm);border:1px solid var(--border);background-color:var(--surface);color:var(--text);outline:none;flex:1;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24'%3E%3Cpath fill='%238C7B6E' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;cursor:pointer;}
+.cat-group{border:1px solid var(--border);border-radius:var(--radius);margin-bottom:8px;overflow:hidden}
+.cat-header{display:flex;align-items:center;padding:10px 12px;background:var(--surface2);gap:8px}
+.cat-header-btn{flex:1;display:flex;align-items:center;gap:8px;background:none;border:none;cursor:pointer;text-align:left;padding:0;font-family:'Zen Maru Gothic',sans-serif}
+.cat-header-name{font-size:13px;font-weight:700;color:var(--text)}
+.cat-count{font-size:10px;color:var(--text3);background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-pill);padding:1px 8px}
+.cat-chevron{font-size:13px;color:var(--text3);transition:transform 0.2s;flex-shrink:0;pointer-events:none;line-height:1}
+.cat-chevron.open{transform:rotate(180deg)}
+.move-btns{display:flex;flex-direction:column;flex-shrink:0}
+.move-btn{background:none;border:none;cursor:pointer;color:var(--text3);font-size:12px;padding:1px 2px;line-height:1;display:flex;align-items:center}
+.move-btn:disabled{opacity:0.2;cursor:default}
+.move-btn:not([disabled]):hover{color:var(--accent)}
+.cat-body{padding:10px}
+.price-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;margin-bottom:6px}
+.price-card:last-child{margin-bottom:0}
+.price-card.best{border-color:var(--green);background:var(--green-bg)}
+.price-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:3px}
+.price-name{font-size:13px;color:var(--text);font-weight:500;flex:1}
+.best-badge{font-size:10px;padding:2px 8px;border-radius:var(--radius-pill);background:var(--green);color:#fff;white-space:nowrap;flex-shrink:0;font-weight:500}
+.price-meta{font-size:11px;color:var(--text3);margin-bottom:6px}
+.price-bottom{display:flex;align-items:center;justify-content:space-between}
+.unit-price{font-size:19px;font-weight:700;color:var(--accent)}
+.unit-label{font-size:11px;color:var(--text3)}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="app-title">🛍 お買い物メモ</div>
+  <div class="tabs">
+    <button class="tab active" id="tab-list" onclick="switchTab('list')">📋 買い物リスト</button>
+    <button class="tab" id="tab-price" onclick="switchTab('price')">🧮 単価比較</button>
+  </div>
+
+  <div class="section active" id="sec-list">
+    <div class="input-row">
+      <input type="text" id="listInput" placeholder="商品を入力…" />
+      <button class="icon-btn" onclick="addListItem()" aria-label="追加">＋</button>
+    </div>
+    <p class="hint">⚠️ マークをタップで「急ぎ」に設定・解除できます</p>
+    <div id="listArea"><p class="empty"><span class="empty-icon">🧺</span>リストが空です<br><span style="font-size:12px">上から商品を追加してね</span></p></div>
+    <div class="footer-bar" id="listFooter" style="display:none">
+      <span class="footer-count" id="listCount"></span>
+      <button class="clear-btn" onclick="clearDone()">完了済みを削除</button>
+    </div>
+  </div>
+
+  <div class="section" id="sec-price">
+    <div class="price-form">
+      <div class="form-grid">
+        <div class="field full"><label>商品名</label><input type="text" id="pName" placeholder="例：ネピア ティッシュ" /></div>
+        <div class="field full">
+          <label>カテゴリ</label>
+          <select id="pCat"></select>
+          <div class="cat-input-row">
+            <input type="text" id="newCatInput" placeholder="新しいカテゴリを追加…" />
+            <button onclick="addCategory()">＋ 追加</button>
+          </div>
+        </div>
+        <div class="field"><label>価格（円）</label><input type="number" id="pPrice" placeholder="例：298" min="0" /></div>
+        <div class="field"><label>箱・セット数</label><input type="number" id="pBoxes" placeholder="例：5" min="1" /></div>
+        <div class="field"><label>1箱あたりの容量</label><input type="number" id="pQty" placeholder="例：150" min="0" step="any" /></div>
+        <div class="field"><label>単位</label>
+          <select id="pUnit">
+            <option value="枚">枚</option><option value="個">個</option><option value="回">回</option>
+            <option value="ml">ml</option><option value="g">g</option><option value="m">m</option>
+            <option value="L">L</option><option value="kg">kg</option>
+          </select>
+        </div>
+      </div>
+      <button class="add-price-btn" onclick="addPriceItem()">＋ 追加して比較</button>
+      <p class="err" id="priceErr">商品名・価格・容量を入力してください</p>
+    </div>
+    <div class="sort-row">
+      <label>並び替え：</label>
+      <select id="sortSel" onchange="renderPriceList()">
+        <option value="cheap">単価が安い順</option>
+        <option value="expensive">単価が高い順</option>
+        <option value="name">名前順</option>
+      </select>
+    </div>
+    <div id="priceArea"><p class="empty"><span class="empty-icon">🏷</span>商品を追加して比較しよう</p></div>
+  </div>
+</div>
+
+<script>
+var listItems=JSON.parse(localStorage.getItem('shopList3')||'[]');
+var priceItems=JSON.parse(localStorage.getItem('priceItems3')||'[]');
+var customCats=JSON.parse(localStorage.getItem('customCats')||'[]');
+var catOrder=JSON.parse(localStorage.getItem('catOrder')||'[]');
+var openCats={};
+var defaultCats=['ティッシュ','トイレットペーパー','洗剤','シャンプー'];
+var LAST_CAT='その他';
+function allCats(){var b=defaultCats.slice();customCats.forEach(function(c){if(b.indexOf(c)<0)b.push(c);});b.push(LAST_CAT);return b;}
+function usedCats(){
+  var inUse=[];priceItems.forEach(function(i){if(inUse.indexOf(i.cat)<0)inUse.push(i.cat);});
+  var ordered=catOrder.filter(function(c){return inUse.indexOf(c)>=0&&c!==LAST_CAT;});
+  inUse.forEach(function(c){if(ordered.indexOf(c)<0&&c!==LAST_CAT)ordered.push(c);});
+  if(inUse.indexOf(LAST_CAT)>=0)ordered.push(LAST_CAT);
+  return ordered;
+}
+function saveList(){localStorage.setItem('shopList3',JSON.stringify(listItems));}
+function savePrice(){localStorage.setItem('priceItems3',JSON.stringify(priceItems));}
+function saveCats(){localStorage.setItem('customCats',JSON.stringify(customCats));}
+function saveOrder(){localStorage.setItem('catOrder',JSON.stringify(catOrder));}
+function rebuildCatSelect(){
+  var sel=document.getElementById('pCat'),cur=sel.value;sel.innerHTML='';
+  allCats().forEach(function(c){var o=document.createElement('option');o.value=c;o.textContent=c;sel.appendChild(o);});
+  if(cur&&allCats().indexOf(cur)>=0)sel.value=cur;
+}
+function addCategory(){
+  var v=document.getElementById('newCatInput').value.trim();
+  if(!v||v===LAST_CAT)return;
+  if(allCats().indexOf(v)<0){customCats.push(v);saveCats();rebuildCatSelect();}
+  document.getElementById('pCat').value=v;
+  document.getElementById('newCatInput').value='';
+}
+function switchTab(t){
+  document.getElementById('tab-list').classList.toggle('active',t==='list');
+  document.getElementById('tab-price').classList.toggle('active',t==='price');
+  document.getElementById('sec-list').classList.toggle('active',t==='list');
+  document.getElementById('sec-price').classList.toggle('active',t==='price');
+}
+function addListItem(){
+  var v=document.getElementById('listInput').value.trim();if(!v)return;
+  listItems.push({id:Date.now(),name:v,urgent:false,done:false});
+  document.getElementById('listInput').value='';saveList();renderList();
+}
+document.getElementById('listInput').addEventListener('keydown',function(e){if(e.key==='Enter')addListItem();});
+function renderList(){
+  var footer=document.getElementById('listFooter');
+  footer.style.display=listItems.length?'flex':'none';
+  document.getElementById('listCount').textContent=listItems.filter(function(i){return i.done;}).length+' / '+listItems.length+' 件完了';
+  var area=document.getElementById('listArea');
+  if(!listItems.length){area.innerHTML='<p class="empty"><span class="empty-icon">🧺</span>リストが空です<br><span style="font-size:12px">上から商品を追加してね</span></p>';return;}
+  var urgent=listItems.filter(function(i){return i.urgent&&!i.done;});
+  var normal=listItems.filter(function(i){return !i.urgent&&!i.done;});
+  var done=listItems.filter(function(i){return i.done;});
+  var html='';
+  if(urgent.length){html+='<p class="sec-label">急ぎ</p>';urgent.forEach(function(i){html+=listCard(i);});}
+  if(normal.length){if(urgent.length)html+='<p class="sec-label">その他</p>';normal.forEach(function(i){html+=listCard(i);});}
+  if(done.length){html+='<p class="sec-label">完了</p>';done.forEach(function(i){html+=listCard(i);});}
+  area.innerHTML=html;
+  area.querySelectorAll('.check-box').forEach(function(el){el.addEventListener('click',function(){var it=listItems.find(function(i){return i.id==el.dataset.id;});if(it){it.done=!it.done;saveList();renderList();}});});
+  area.querySelectorAll('.urgent-btn').forEach(function(el){el.addEventListener('click',function(){var it=listItems.find(function(i){return i.id==el.dataset.id;});if(it){it.urgent=!it.urgent;saveList();renderList();}});});
+  area.querySelectorAll('.del-btn').forEach(function(el){el.addEventListener('click',function(){listItems=listItems.filter(function(i){return i.id!=el.dataset.id;});saveList();renderList();});});
+}
+function listCard(item){
+  return '<div class="item-card '+(item.urgent&&!item.done?'urgent':'')+' '+(item.done?'done':'')+'">'+
+    '<div class="check-box '+(item.done?'checked':'')+'" data-id="'+item.id+'" role="checkbox" tabindex="0">'+(item.done?'✓':'')+'</div>'+
+    '<span class="item-name">'+item.name+'</span>'+
+    '<button class="urgent-btn '+(item.urgent&&!item.done?'on':'')+'" data-id="'+item.id+'" aria-label="急ぎ設定">⚠️</button>'+
+    '<button class="del-btn" data-id="'+item.id+'" aria-label="削除">✕</button>'+
+    '</div>';
+}
+function clearDone(){listItems=listItems.filter(function(i){return !i.done;});saveList();renderList();}
+function addPriceItem(){
+  var name=document.getElementById('pName').value.trim();
+  var cat=document.getElementById('pCat').value;
+  var price=parseFloat(document.getElementById('pPrice').value.trim());
+  var boxesVal=document.getElementById('pBoxes').value.trim();
+  var boxes=boxesVal===''?1:parseFloat(boxesVal);
+  var qty=parseFloat(document.getElementById('pQty').value.trim());
+  var unit=document.getElementById('pUnit').value;
+  var errEl=document.getElementById('priceErr');
+  if(!name||isNaN(price)||price<0||isNaN(qty)||qty<=0||isNaN(boxes)||boxes<1){errEl.style.display='block';return;}
+  errEl.style.display='none';
+  priceItems.push({id:Date.now(),name:name,cat:cat,price:price,boxes:boxes,qty:qty,unit:unit});
+  if(cat!==LAST_CAT&&catOrder.indexOf(cat)<0)catOrder.push(cat);
+  if(!(cat in openCats))openCats[cat]=true;
+  savePrice();saveOrder();renderPriceList();
+  document.getElementById('pName').value='';document.getElementById('pPrice').value='';document.getElementById('pBoxes').value='';document.getElementById('pQty').value='';
+}
+function moveCat(cat,dir){
+  var cats=usedCats(),moveables=cats.filter(function(c){return c!==LAST_CAT;}),idx=moveables.indexOf(cat);
+  if(idx<0)return;var newIdx=idx+dir;if(newIdx<0||newIdx>=moveables.length)return;
+  var tmp=moveables[idx];moveables[idx]=moveables[newIdx];moveables[newIdx]=tmp;
+  catOrder=moveables;saveOrder();renderPriceList();
+}
+function toggleCat(cat){openCats[cat]=openCats[cat]===false?true:false;renderPriceList();}
+function renderPriceList(){
+  var sort=document.getElementById('sortSel').value,area=document.getElementById('priceArea');
+  if(!priceItems.length){area.innerHTML='<p class="empty"><span class="empty-icon">🏷</span>商品を追加して比較しよう</p>';return;}
+  var cats=usedCats(),moveables=cats.filter(function(c){return c!==LAST_CAT;}),html='';
+  cats.forEach(function(cat){
+    var isLast=cat===LAST_CAT,isOpen=openCats[cat]!==false;
+    var group=priceItems.filter(function(i){return i.cat===cat;}).map(function(i){return {id:i.id,name:i.name,price:i.price,boxes:i.boxes,qty:i.qty,unit:i.unit,unitPrice:i.price/(i.qty*i.boxes)};});
+    if(sort==='cheap')group.sort(function(a,b){return a.unitPrice-b.unitPrice;});
+    else if(sort==='expensive')group.sort(function(a,b){return b.unitPrice-a.unitPrice;});
+    else group.sort(function(a,b){return a.name.localeCompare(b.name,'ja');});
+    var bestId=sort!=='expensive'?group[0].id:null;
+    var midx=moveables.indexOf(cat),canUp=!isLast&&midx>0,canDown=!isLast&&midx>=0&&midx<moveables.length-1;
+    html+='<div class="cat-group"><div class="cat-header">'+
+      (!isLast?'<div class="move-btns"><button class="move-btn" data-cat="'+cat+'" data-dir="-1" '+(canUp?'':'disabled')+'>▲</button><button class="move-btn" data-cat="'+cat+'" data-dir="1" '+(canDown?'':'disabled')+'>▼</button></div>':'<div style="width:18px"></div>')+
+      '<button class="cat-header-btn" data-cat="'+cat+'"><span class="cat-header-name">'+cat+'</span><span class="cat-count">'+group.length+'件</span></button>'+
+      '<span class="cat-chevron '+(isOpen?'open':'')+'">▼</span></div>';
+    if(isOpen){
+      html+='<div class="cat-body">';
+      group.forEach(function(item){
+        var isBest=item.id===bestId,total=item.qty*item.boxes,up=item.unitPrice;
+        var upStr=up>=10?up.toFixed(1):up.toFixed(2);
+        var meta=item.boxes>1?item.boxes+'箱 × '+item.qty+item.unit+' = 計'+total+item.unit:item.qty+item.unit;
+        html+='<div class="price-card '+(isBest?'best':'')+'"><div class="price-top"><span class="price-name">'+item.name+'</span>'+(isBest?'<span class="best-badge">最安値</span>':'')+
+          '</div><p class="price-meta">'+item.price.toLocaleString()+'円 / '+meta+'</p>'+
+          '<div class="price-bottom"><div><span class="unit-price">'+upStr+'円</span><span class="unit-label"> / '+item.unit+'</span></div>'+
+          '<button class="del-btn" data-id="'+item.id+'">🗑</button></div></div>';
+      });
+      html+='</div>';
+    }
+    html+='</div>';
+  });
+  area.innerHTML=html;
+  area.querySelectorAll('.cat-header-btn').forEach(function(el){el.addEventListener('click',function(){toggleCat(el.dataset.cat);});});
+  area.querySelectorAll('.move-btn:not([disabled])').forEach(function(el){el.addEventListener('click',function(e){e.stopPropagation();moveCat(el.dataset.cat,parseInt(el.dataset.dir));});});
+  area.querySelectorAll('.del-btn').forEach(function(el){el.addEventListener('click',function(){priceItems=priceItems.filter(function(i){return i.id!=el.dataset.id;});savePrice();renderPriceList();});});
+}
+rebuildCatSelect();renderList();renderPriceList();
+</script>
+</body>
+</html>
