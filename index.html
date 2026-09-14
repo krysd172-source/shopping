@@ -3,6 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="お買い物メモ">
+<meta name="theme-color" content="#C97B5A">
+<link rel="apple-touch-icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALQAAAC0CAIAAACyr5FlAAAB80lEQVR42u3Syw3DMAwFQdaZVlJhqnJyDPyXZBmwOMRW8Dgx3Xif90uN3fmvgACaO3D40GBKgglKuuDwgLGJBBaIXInD1kl8BBaIXIDDstl8BBl8NOGwZk4fQQYflTgsmNlHkMFHMQ6r8RFkaMsHHCrBYSk+1nHYiA84VIjDOoJDhTjsopkPOASHqnFYREsfcAgO1eGwhVZ9wCE4BIfgEByCQ3DoaTisoK3gEByCQ3AIDsEhOASH4BAcgkOCQ3AIDsEhOASH4BAcgkNwSHAIDsEhOASH4BAcgkNwCA4JDsEhOASH4BAcgkNwCA7BITgkOASH4BAcgkNwCA7BITgEhwSH4BAcgkNwCA7BITgEh+CQ4BAcgkNwCA7BITgEh+AQHIJDgkNwCA7BITgEh+AQHIJDcEhwCA7BITgEh+AQHIJDcAgOCQ7BITgEh+AQHIJDcAgOwSE4JDgEh+BQbxzTNFlBy34w4BAcgkNwCA7BITj0QBx8aCkDDsGhFhx8aCYDDsGhRhx86F8GHDqNgw8y4FAVDj7I2MPBBxlwqAoHH2Ts4eAjuYwDHHxklnGMg4+0Mk7h4COnjLM4+EgoowAHH9lklOHgI5WMYhyIJGFRj4OPDDLqcSAyNosLcCAyKovLcFAymIkuOCgZw0RfHNA8C8HWfQGNp47CjVOklgAAAABJRU5ErkJggg==">
 <title>お買い物メモ</title>
 <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
@@ -189,7 +194,7 @@ function switchTab(t){
 }
 function addListItem(){
   var v=document.getElementById('listInput').value.trim();if(!v)return;
-  listItems.push({id:Date.now(),name:v,urgent:false,done:false});
+  listItems.unshift({id:Date.now(),name:v,urgent:false,done:false});
   document.getElementById('listInput').value='';saveList();renderList();
 }
 document.getElementById('listInput').addEventListener('keydown',function(e){if(e.key==='Enter')addListItem();});
