@@ -93,6 +93,17 @@ body{font-family:'Zen Maru Gothic',sans-serif;background:var(--bg);color:var(--t
 .price-bottom{display:flex;align-items:center;justify-content:space-between}
 .unit-price{font-size:19px;font-weight:700;color:var(--accent)}
 .unit-label{font-size:11px;color:var(--text3)}
+.store-badge{font-size:11px;color:var(--text2);background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-pill);padding:1px 8px;display:inline-block;margin-bottom:4px}
+.variant-form{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px;margin-top:8px}
+.variant-form-title{font-size:11px;color:var(--text2);font-weight:500;margin-bottom:8px;letter-spacing:0.03em}
+.variant-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin-bottom:8px}
+.variant-grid .field label{font-size:11px}
+.variant-grid .field input,.variant-grid .field select{font-size:16px;height:38px}
+.add-variant-btn{font-size:12px;color:var(--accent);background:none;border:1px solid var(--accent);border-radius:var(--radius-pill);padding:3px 12px;cursor:pointer;font-family:'Zen Maru Gothic',sans-serif;margin-top:6px;display:inline-block}
+.add-variant-btn:hover{background:var(--accent-bg)}
+.submit-variant-btn{width:100%;height:36px;border-radius:var(--radius-sm);border:none;background:var(--accent);color:#fff;font-size:12px;font-family:'Zen Maru Gothic',sans-serif;cursor:pointer}
+.cancel-variant-btn{width:100%;height:32px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface);color:var(--text2);font-size:12px;font-family:'Zen Maru Gothic',sans-serif;cursor:pointer;margin-top:4px}
+.variant-form .field.full{grid-column:1/-1}
 </style>
 </head>
 <body>
@@ -138,6 +149,7 @@ body{font-family:'Zen Maru Gothic',sans-serif;background:var(--bg);color:var(--t
             <option value="L">L</option><option value="kg">kg</option>
           </select>
         </div>
+        <div class="field full"><label>店名（任意）</label><input type="text" id="pStore" placeholder="例：コストコ、ドラッグストア" /></div>
       </div>
       <button class="add-price-btn" onclick="addPriceItem()">＋ 追加して比較</button>
       <p class="err" id="priceErr">商品名・価格・容量を入力してください</p>
@@ -233,14 +245,65 @@ function addPriceItem(){
   var boxes=boxesVal===''?1:parseFloat(boxesVal);
   var qty=parseFloat(document.getElementById('pQty').value.trim());
   var unit=document.getElementById('pUnit').value;
+  var store=document.getElementById('pStore').value.trim();
   var errEl=document.getElementById('priceErr');
   if(!name||isNaN(price)||price<0||isNaN(qty)||qty<=0||isNaN(boxes)||boxes<1){errEl.style.display='block';return;}
   errEl.style.display='none';
-  priceItems.push({id:Date.now(),name:name,cat:cat,price:price,boxes:boxes,qty:qty,unit:unit});
+  priceItems.push({id:Date.now(),name:name,cat:cat,price:price,boxes:boxes,qty:qty,unit:unit,store:store});
   if(cat!==LAST_CAT&&catOrder.indexOf(cat)<0)catOrder.push(cat);
   if(!(cat in openCats))openCats[cat]=true;
   savePrice();saveOrder();renderPriceList();
-  document.getElementById('pName').value='';document.getElementById('pPrice').value='';document.getElementById('pBoxes').value='';document.getElementById('pQty').value='';
+  document.getElementById('pName').value='';document.getElementById('pPrice').value='';document.getElementById('pBoxes').value='';document.getElementById('pQty').value='';document.getElementById('pStore').value='';
+}
+function addVariant(baseId){
+  var base=priceItems.find(function(i){return i.id==baseId;});
+  if(!base)return;
+  var formId='vform-'+baseId;
+  var existing=document.getElementById(formId);
+  if(existing){existing.remove();return;}
+  var units=['枚','個','回','ml','g','m','L','kg'];
+  var sel=document.createElement('select');
+  sel.id='vu-'+baseId;
+  sel.style.cssText='font-size:16px;height:38px;width:100%;padding:0 8px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);outline:none;';
+  units.forEach(function(u){
+    var o=document.createElement('option');
+    o.value=u;o.textContent=u;
+    if(u===base.unit)o.selected=true;
+    sel.appendChild(o);
+  });
+  var wrap=document.createElement('div');
+  wrap.className='variant-form';
+  wrap.id=formId;
+  wrap.innerHTML=
+    '<p class="variant-form-title">📦 '+base.name+' — 別の価格を追加</p>'+
+    '<div class="variant-grid">'+
+      '<div class="field"><label>価格（円）</label><input type="number" id="vp-'+baseId+'" placeholder="例：298" min="0" style="font-size:16px"></div>'+
+      '<div class="field"><label>箱・セット数</label><input type="number" id="vb-'+baseId+'" value="'+base.boxes+'" min="1" style="font-size:16px"></div>'+
+      '<div class="field"><label>1箱あたりの容量</label><input type="number" id="vq-'+baseId+'" value="'+base.qty+'" min="0" step="any" style="font-size:16px"></div>'+
+      '<div class="field" id="vunit-wrap-'+baseId+'"><label>単位</label></div>'+
+      '<div class="field full"><label>店名（任意）</label><input type="text" id="vs-'+baseId+'" placeholder="例：コストコ" style="font-size:16px"></div>'+
+    '</div>'+
+    '<button class="submit-variant-btn" onclick="submitVariant('+baseId+')">＋ 追加</button>'+
+    '<button class="cancel-variant-btn" onclick="document.getElementById(\''+formId+'\').remove()">キャンセル</button>';
+  var card=document.querySelector('.price-card[data-id="'+baseId+'"]');
+  if(card){
+    card.insertAdjacentElement('afterend',wrap);
+    document.getElementById('vunit-wrap-'+baseId).appendChild(sel);
+  }
+}
+function submitVariant(baseId){
+  var base=priceItems.find(function(i){return i.id==baseId;});
+  if(!base)return;
+  var price=parseFloat(document.getElementById('vp-'+baseId).value);
+  var boxes=parseFloat(document.getElementById('vb-'+baseId).value)||1;
+  var qty=parseFloat(document.getElementById('vq-'+baseId).value);
+  var unit=document.getElementById('vu-'+baseId).value;
+  var store=(document.getElementById('vs-'+baseId).value||'').trim();
+  if(isNaN(price)||price<0||isNaN(qty)||qty<=0){return;}
+  priceItems.push({id:Date.now(),name:base.name,cat:base.cat,price:price,boxes:boxes,qty:qty,unit:unit,store:store});
+  var formEl=document.getElementById('vform-'+baseId);
+  if(formEl)formEl.remove();
+  savePrice();renderPriceList();
 }
 function moveCat(cat,dir){
   var cats=usedCats(),moveables=cats.filter(function(c){return c!==LAST_CAT;}),idx=moveables.indexOf(cat);
@@ -271,10 +334,12 @@ function renderPriceList(){
         var isBest=item.id===bestId,total=item.qty*item.boxes,up=item.unitPrice;
         var upStr=up>=10?up.toFixed(1):up.toFixed(2);
         var meta=item.boxes>1?item.boxes+'箱 × '+item.qty+item.unit+' = 計'+total+item.unit:item.qty+item.unit;
-        html+='<div class="price-card '+(isBest?'best':'')+'"><div class="price-top"><span class="price-name">'+item.name+'</span>'+(isBest?'<span class="best-badge">最安値</span>':'')+
-          '</div><p class="price-meta">'+item.price.toLocaleString()+'円 / '+meta+'</p>'+
+        html+='<div class="price-card '+(isBest?'best':'')+'" data-id="'+item.id+'"><div class="price-top"><span class="price-name">'+item.name+'</span>'+(isBest?'<span class="best-badge">最安値</span>':'')+
+          '</div>'+(item.store?'<p><span class="store-badge">🏪 '+item.store+'</span></p>':'')+
+          '<p class="price-meta">'+item.price.toLocaleString()+'円 / '+meta+'</p>'+
           '<div class="price-bottom"><div><span class="unit-price">'+upStr+'円</span><span class="unit-label"> / '+item.unit+'</span></div>'+
-          '<button class="del-btn" data-id="'+item.id+'">🗑</button></div></div>';
+          '<div style="display:flex;gap:6px;align-items:center"><button class="add-variant-btn" onclick="addVariant('+item.id+')">＋ 別価格</button><button class="del-btn" data-id="'+item.id+'">🗑</button></div>'+
+          '</div></div>';
       });
       html+='</div>';
     }
